@@ -1,0 +1,31 @@
+#!/bin/bash
+
+usage() {
+  echo "$0 <pattern> <file>"
+  exit 1
+}
+
+if [ "x$1" == "x" ] || [ "x$2" == "x" ]; then
+  usage
+fi
+
+i=0
+last_match=""
+IFS=$'\n'
+for LINE in $(grep ${1} ${2}); do
+  
+  if [ $i -gt 0 ]; then
+     echo -e "\t$last_match"
+  fi
+  RSS=$(echo $LINE | awk -F' ' '{print $6}')
+  MEM=$(numfmt --to=iec-i --from-unit=K --suffix=B --format="%.3f" $RSS)
+  echo -n $MEM
+  i=$((i+1))
+  last_match=$(echo $LINE | awk -F' ' '{$1=$2=$3=$4=$5=$6=$7=$8=$9=$10="";print $0}')
+done
+
+if [ $i -gt 1 ]; then
+  echo -e "\t$last_match"
+else
+  echo ""
+fi
