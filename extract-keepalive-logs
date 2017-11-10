@@ -2,7 +2,8 @@
 
 # Extract keepalive logs from syslog per router id
 
-LOGFILE=${1:-/var/log/syslog}
+ROUTER_ID=$1
+LOGFILE=${2:-/var/log/syslog}
 
 for PID in `grep $ROUTER_ID $LOGFILE | awk -F' ' '{print $5}' | cut -d'[' -f2 | tr -d ']:'`; do
     grep "Keepalived_vrrp\[$PID\]" $LOGFILE
