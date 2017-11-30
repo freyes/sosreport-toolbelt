@@ -1,0 +1,93 @@
+#!/usr/bin/python3
+#
+# Usage examples:
+# ./rsyslog-check-qi foo.qi foo.0000010 foo.0000011
+# ./rsyslog-check-qi foo.qi $(find . -regextype sed -regex ".*/foo.[0-9]\+")
+#
+# To process many queue indexes:
+#
+# for i in $(find . -name "*.qi"); do
+#   rsyslog-check-qi $i $(find `dirname $i` -regextype sed -regex "${i%.*}.[0-9]\+")
+#   echo '---'
+# done
+#
+
+__author__ = "Felipe Reyes <felipe.reyes@canonical.com>"
+
+import argparse
+import os
+import sys
+
+from collections import defaultdict
+
+
+def setup_options(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('qi_fpath', help="queue index file (.qi)")
+    parser.add_argument('chunk_files', nargs='+', help="entry files, their extension is typically a number")
+    return parser.parse_args(argv)
+
+def parse_queue_index(qi_fpath):
+    metadata = defaultdict(lambda: None)
+    with open(qi_fpath) as f:
+        for l in f.readlines():
+            if l.startswith('+iQueueSize'):
+                metadata['expected_entries'] = int(l.split(':')[3])
+                continue
+            elif l.startswith('+tVars.disk.sizeOnDisk'):
+                metadata['size_on_disk'] = int(l.split(':')[3])
+                continue
+
+    return metadata
+
+
+def count_entries(chunk_file):
+
+    counter = 0
+    with open(chunk_file) as f:
+        for l in f.readlines():
+            if l.startswith('<Obj:'):
+                counter += 1
+
+    return counter
+
+
+def file_size(chunk_file):
+    s_info = os.stat(chunk_file)
+    return s_info.st_size
+
+
+def main(argv=None):
+    exit_code = 0
+    opts = setup_options(argv)
+
+    metadata = parse_queue_index(opts.qi_fpath)
+    entries = 0
+    size_on_disk = 0
+    for chunk_file in opts.chunk_files:
+        entries += count_entries(chunk_file)
+        size_on_disk += file_size(chunk_file)
+
+    print('qi file:', opts.qi_fpath)
+    print('Expected entries: 	%10d' % metadata['expected_entries'])
+    print('Entries found:		%10d' % entries)
+    if metadata['expected_entries'] != entries:
+        print('ERROR: entries mistmatch')
+        exit_code = 1
+    else:
+        print('SUCCESS: entries match')
+
+    print('')
+    print('Expected file size:  	%10d' % metadata['size_on_disk'])
+    print('Actual size on disk: 	%10d' % size_on_disk)
+    if metadata['size_on_disk'] != size_on_disk:
+        print('ERROR: file sizes mistmatch')
+        exit_code += 2
+    else:
+        print('SUCCESS: file size match')
+
+    return exit_code
+
+
+if __name__ == '__main__':
+    sys.exit(main())
