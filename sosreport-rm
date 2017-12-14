@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for ITEM in $(find . -maxdepth 1 -name "sosreport-*" -type d); do
+    test -f $ITEM.tar.xz && sudo rm -rf $ITEM
+done

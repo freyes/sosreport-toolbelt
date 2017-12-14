@@ -1,0 +1,11 @@
+#!/bin/bash
+
+for FNAME in $@; do
+    echo -n "decompressing $FNAME ..."
+    tar xJf $FNAME
+    if [ "x$?" == "x0" ]; then
+        echo " done"
+    else
+        echo " error"
+    fi
+done

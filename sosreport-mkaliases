@@ -1,0 +1,40 @@
+#!/bin/bash
+
+POSITIONAL=()
+EXCLUDE=()
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -e|--exclude)
+            EXCLUDE+=("$2")
+            shift # past argument
+            shift # past value
+            ;;
+        *)    # unknown option
+            POSITIONAL+=("$1") # save it in an array for later
+            shift # past argument
+            ;;
+    esac
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+WHERE="${1:-.}"
+
+for DIR in $(find $WHERE -maxdepth 1 -name "sosreport-*" -type d); do
+    for UNIT in $(grep "jujud unit" $DIR/ps | rev | cut -d' ' -f2 | rev | tr '/' '-'); do
+        SKIP=0
+
+        for ITEM in ${EXCLUDE[*]}; do
+            if [[ "$UNIT" == $ITEM* ]]; then
+                SKIP=1
+            fi
+        done
+
+        if [ $SKIP -eq 0 ]; then
+            ln -s $DIR $UNIT
+        fi
+    done
+done
