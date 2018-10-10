@@ -1,6 +1,12 @@
 #!/bin/bash
 
 for FNAME in $@; do
+    dirname="${FNAME%.*}"
+    dirname="${dirname%.*}"
+    if [ -d "$dirname" ]; then
+        echo "Skipping $FNAME , $dirname already exists"
+        continue
+    fi
     echo -n "decompressing $FNAME ..."
     tar xJf $FNAME
     if [ "x$?" == "x0" ]; then
