@@ -5,6 +5,15 @@ POSITIONAL=()
 EXCLUDE=()
 INCLUDE=()
 
+function show_usage()
+{
+    echo "Usage: sosreport-mkaliases [-l] sosreport01234/"
+    echo " -l\tList available units"
+    echo " -e\tExclude units from symlinked, use this as many times you want."
+    echo " -i\tInclude units to be symliked, only these units will be considered."
+    exit 1
+}
+
 while [[ $# -gt 0 ]]
 do
     key="$1"
@@ -38,9 +47,26 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 WHERE="${1:-.}"
 
+# if EXCLUDE and INCLUDE are empty, then assume --list
+if [ ${#EXCLUDE[@]} -eq 0 ] && [ ${#INCLUDE[@]} -eq 0 ]; then
+    LIST=1
+fi
+
+
 for DIR in $(find $WHERE -maxdepth 1 -name "sosreport-*" -type d); do
     for UNIT in $(grep "jujud unit" $DIR/ps | rev | cut -d' ' -f2 | rev | tr '/' '-'); do
-        SKIP=0
+
+        if [ $LIST -eq 1 ]; then
+            echo "$UNIT"
+            continue
+        fi
+
+        # if EXCLUDE is empty, then the default is to skip it unless it's added by -i
+        if [ ${#EXCLUDE[@]} -eq 0 ]; then
+            SKIP=1
+        else
+            SKIP=0
+        fi
 
         for ITEM in ${EXCLUDE[*]}; do
             if [[ "$UNIT" == $ITEM* ]]; then
@@ -48,12 +74,14 @@ for DIR in $(find $WHERE -maxdepth 1 -name "sosreport-*" -type d); do
             fi
         done
 
-        if [ $SKIP -eq 0 ]; then
-            if [ $LIST -eq 1 ]; then
-                echo "$UNIT"
-            else
-                ln -s $DIR $UNIT
+        for ITEM in ${INCLUDE[*]}; do
+            if [[ "$UNIT" == $ITEM* ]]; then
+                SKIP=0
             fi
+        done
+
+        if [ $SKIP -eq 0 ]; then
+            ln -s $DIR $UNIT
         fi
     done
 done
