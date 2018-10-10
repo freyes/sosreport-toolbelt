@@ -54,10 +54,15 @@ fi
 
 
 for DIR in $(find $WHERE -maxdepth 1 -name "sosreport-*" -type d); do
+
+    if [ $LIST -eq 1 ]; then
+        echo "$DIR"
+    fi
+
     for UNIT in $(grep "jujud unit" $DIR/ps | rev | cut -d' ' -f2 | rev | tr '/' '-'); do
 
         if [ $LIST -eq 1 ]; then
-            echo "$UNIT"
+            echo "    $UNIT"
             continue
         fi
 
