@@ -1,17 +1,32 @@
 #!/bin/bash
 
+LIST=0
 POSITIONAL=()
 EXCLUDE=()
+INCLUDE=()
 
 while [[ $# -gt 0 ]]
 do
     key="$1"
 
     case $key in
+        -h|--help)
+            show_usage
+            exit 1
+            ;;
+        -l|--list)
+            LIST=1
+            shift
+            ;;
         -e|--exclude)
             EXCLUDE+=("$2")
             shift # past argument
             shift # past value
+            ;;
+        -i|--include)
+            INCLUDE+=("$2")
+            shift
+            shift
             ;;
         *)    # unknown option
             POSITIONAL+=("$1") # save it in an array for later
@@ -34,7 +49,11 @@ for DIR in $(find $WHERE -maxdepth 1 -name "sosreport-*" -type d); do
         done
 
         if [ $SKIP -eq 0 ]; then
-            ln -s $DIR $UNIT
+            if [ $LIST -eq 1 ]; then
+                echo "$UNIT"
+            else
+                ln -s $DIR $UNIT
+            fi
         fi
     done
 done
