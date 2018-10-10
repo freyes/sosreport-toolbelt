@@ -1,6 +1,12 @@
-#!/bin/bash -x
+#!/bin/bash
 
 PATTERN=$1
 DIR="${2:-.}"
 
-(zgrep -HT "$PATTERN" "$DIR"/*.gz ; grep -HT "$PATTERN" "$DIR"/* )|sort -k1,2
+if [ -t 1 ] ; then
+    GREP_OPTS="--color=always"
+else
+    GREP_OPTS=""
+fi
+
+(zgrep $GREP_OPTS -hT "$PATTERN" "$DIR"/*.gz ; grep $GREP_OPTS -hT "$PATTERN" "$DIR"/* )|sort -k1,2
