@@ -1,0 +1,17 @@
+#!/bin/bash
+
+for FNAME in $@; do
+    dirname="${FNAME%.*}"
+    dirname="${dirname%.*}"
+    if [ -d "$dirname" ]; then
+        echo "Skipping $FNAME , $dirname already exists"
+        continue
+    fi
+    echo -n "extracting var/log from $FNAME ..."
+    tar xJf $FNAME $dirname/var/log
+    if [ "x$?" == "x0" ]; then
+        echo " done"
+    else
+        echo " error"
+    fi
+done
