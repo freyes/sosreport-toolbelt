@@ -1,0 +1,46 @@
+#!/bin/bash -e
+#
+# Find extracted sosreport and remove them
+#
+
+function show_usage()
+{
+    echo "Usage: sosreport-find2del [-r]"
+    echo -e " -r\tRemove matched sosreports"
+    exit 1
+}
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -h|--help)
+            show_usage
+            exit 1
+            ;;
+        -r|--remove)
+            REMOVE=1
+            shift
+            ;;
+        *)    # unknown option
+            POSITIONAL+=("$1") # save it in an array for later
+            shift # past argument
+            ;;
+    esac
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+WHERE="${1:-.}"
+
+
+for i in $(find "${WHERE}" -name 'sosreport-*' -type d); do
+    if [ -f "${i}.tar.xz" ]; then
+       if [ "x$REMOVE" = "x1" ]; then
+           echo -n "Removing ${i}..."
+           sudo rm -rf "${i}" && echo "done"
+       else
+           echo "${i}"
+       fi
+    fi
+done
