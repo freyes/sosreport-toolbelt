@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#
+# Author: Felipe Reyes <felipe.reyes@canonical.com>
 
 LIST=0
 POSITIONAL=()
