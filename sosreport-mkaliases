@@ -8,9 +8,9 @@ INCLUDE=()
 function show_usage()
 {
     echo "Usage: sosreport-mkaliases [-l] sosreport01234/"
-    echo " -l\tList available units"
-    echo " -e\tExclude units from symlinked, use this as many times you want."
-    echo " -i\tInclude units to be symliked, only these units will be considered."
+    echo -e " -l\tList available units"
+    echo -e " -e\tExclude units from symlinked, use this as many times you want."
+    echo -e " -i\tInclude units to be symliked, only these units will be considered."
     exit 1
 }
 
