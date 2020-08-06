@@ -1,0 +1,20 @@
+#!/bin/bash -e
+#
+# Usage example:
+# $ rmq-missed-heartbeats var/log/rabbitmq/
+#      4 1-Aug-2020
+#      8 27-Jul-2020
+#      7 28-Jul-2020
+#     11 29-Jul-2020
+#     14 2-Aug-2020
+#      9 30-Jul-2020
+#      6 31-Jul-2020
+#     18 3-Aug-2020
+#     93 4-Aug-2020
+# 171345 5-Aug-2020
+# 308521 6-Aug-2020
+ag --no-filename -B2 "missed heartbeats from client" $@ | \
+    grep "=ERROR REPORT====" | \
+    awk -F' ' '{print $3}' | \
+    awk -F':' '{print $1}' | \
+    sort | uniq -c
